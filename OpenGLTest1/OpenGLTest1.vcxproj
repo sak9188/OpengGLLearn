@@ -151,6 +151,7 @@
     <ClCompile Include="BaseClass\Texture.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="BaseClass\Camera.h" />
     <ClInclude Include="BaseClass\Shader.h" />
     <ClInclude Include="BaseClass\stb_image.h" />
     <ClInclude Include="BaseClass\Texture.h" />
