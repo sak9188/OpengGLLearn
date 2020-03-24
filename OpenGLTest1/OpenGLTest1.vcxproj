@@ -93,7 +93,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>opengl32.lib;glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;glfw3.lib;assimp-vc140-mt.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -155,18 +155,29 @@
     <ClInclude Include="BaseClass\Shader.h" />
     <ClInclude Include="BaseClass\stb_image.h" />
     <ClInclude Include="BaseClass\Texture.h" />
+    <ClInclude Include="include\assimp\config.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="4.1.texture.fs" />
     <None Include="4.1.texture.vs" />
     <None Include="7.1.texture.fs" />
     <None Include="7.1.texture.vs" />
+    <None Include="assimp-vc140-mt.dll" />
+    <None Include="color.fs" />
+    <None Include="color.vs" />
+    <None Include="lamp.fs" />
+    <None Include="lamp.vs" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="container2.png" />
+    <Image Include="container2_sep.png" />
     <Image Include="wall.jpg" />
     <Image Include="wall2.jpg" />
     <Image Include="wall3.png" />
     <Image Include="wall4.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="assimp-vc140-mt.lib" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
