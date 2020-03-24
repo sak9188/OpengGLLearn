@@ -7,8 +7,6 @@
 #include "BaseClass\Texture.h"
 #include "BaseClass\Camera.h"
 
-#include "include\assimp\config.h"
-
 int init(GLFWwindow* &window);
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
