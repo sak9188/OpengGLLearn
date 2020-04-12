@@ -1,7 +1,7 @@
 #include "Texture.h"
 
 
-Texture::Texture(const GLchar* imagePath)
+cTexture::cTexture(const GLchar* imagePath)
 {
 	glGenTextures(1, &this->ID);
 
@@ -33,7 +33,7 @@ Texture::Texture(const GLchar* imagePath)
 	stbi_image_free(data);
 }
 
-void Texture::use()
+void cTexture::use()
 {		
 	glBindTexture(GL_TEXTURE_2D, this->ID);
 }

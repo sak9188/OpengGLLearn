@@ -1,11 +1,16 @@
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
+#include "imgui/imgui.h"
+#include "imgui/imgui_impl_glfw.h"
+#include "imgui/imgui_impl_opengl3.h"
+#include <stdio.h>
 
+#include <glad/glad.h>  // Initialize with gladLoadGL()
+#include <GLFW/glfw3.h>
 #include <iostream>
 
 #include "BaseClass\Shader.h"
 #include "BaseClass\Texture.h"
 #include "BaseClass\Camera.h"
+#include "BaseClass\Model.h"
 
 int init(GLFWwindow* &window);
 
@@ -14,8 +19,8 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void processInput(GLFWwindow *window, Camera &cam);
 
 // settings
-const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 600;
+const unsigned int SCR_WIDTH = 1280;
+const unsigned int SCR_HEIGHT = 720;
 
 // camera
 glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
@@ -39,6 +44,16 @@ glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
 // Camera
 Camera cam(glm::vec3(0.0f, 0.0f, 5.0f));
 
+#define WINDOW_TITLE u8"opengl 很有意思"
+
+
+int mouse_state = GLFW_CURSOR_DISABLED;
+
+static void glfw_error_callback(int error, const char* description)
+{
+	fprintf(stderr, "Glfw Error %d: %s\n", error, description);
+}
+
 int main()
 {
 	GLFWwindow* window = nullptr;
@@ -46,6 +61,14 @@ int main()
 	int initFlag = init(window);
 	if (initFlag == -1)
 		return initFlag;
+
+	// build and compile shaders
+	// -------------------------
+	Shader ourShader("model_loading.vs", "model_loading.fs");
+
+	// load models
+	// -----------
+	Model ourModel("./models/bun_zipper.ply");
 	
 	// build and compile our shader zprogram
 	// Shader ourShader("7.1.texture.vs", "7.1.texture.fs");
@@ -125,8 +148,8 @@ int main()
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 
-	Texture diffuseMap("container2.png");
-	Texture specularMap("container2_sep.png");
+	cTexture diffuseMap("container2.png");
+	cTexture specularMap("container2_sep.png");
 
 	// shader configuration
 	// --------------------
@@ -140,8 +163,41 @@ int main()
 	float camX = sin(glfwGetTime()) * radius;
 	float camZ = cos(glfwGetTime()) * radius;
 
+	// Our state
+	bool show_demo_window = false;
+	ImVec4 clear_color = ImVec4(0.1f, 0.2f, 0.3f, 1.00f);
+	
 	while (!glfwWindowShouldClose(window))
 	{        
+		glfwPollEvents();
+
+		// Start the Dear ImGui frame
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
+
+		// 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
+		if (show_demo_window)
+			ImGui::ShowDemoWindow(&show_demo_window);
+
+		// 2. Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
+		{
+			static float f = 0.0f;
+			static int counter = 0;
+
+			ImGui::Begin("Color Piker");                         
+			// ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            
+			ImGui::ColorEdit3("clear color", (float*)&clear_color);
+
+			//if (ImGui::Button("Button"))
+			//	counter++;
+			//ImGui::SameLine();
+			//ImGui::Text("counter = %d", counter);
+
+			ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+			ImGui::End();
+		}
+
 		// per-frame time logic
 		// --------------------
 		float currentFrame = glfwGetTime();
@@ -162,7 +218,7 @@ int main()
 		// ------
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+		
 		// bind diffuse map
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, diffuseMap.ID);
@@ -210,11 +266,38 @@ int main()
 		glBindVertexArray(lightVAO);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 
+		// view/projection transformations
+		ourShader.use();
+		ourShader.setMat4("projection", projection);
+		ourShader.setMat4("view", view);
+
+		ourShader.setVec3("light.position", lightPos);
+		ourShader.setVec3("viewPos", cam.Position);
+
+		// light properties
+		ourShader.setVec3("light.ambient", 0.2f, 0.2f, 0.2f);
+		ourShader.setVec3("light.diffuse", 0.5f, 0.5f, 0.5f);
+		ourShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
+
+		// material properties
+		ourShader.setVec3("material.baseColor", clear_color.x, clear_color.y, clear_color.z);
+		ourShader.setFloat("material.shininess", 64.0f);
+
+		// render the loaded model
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(2.0f, -1.0f, 0.0f)); // translate it down so it's at the center of the scene
+		model = glm::scale(model, glm::vec3(10.0f, 10.0f, 10.0f));	// it's a bit too big for our scene, so scale it down
+		ourShader.setMat4("model", model);
+		ourModel.Draw(ourShader);
+
+		// Rendering
+		ImGui::Render();
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
 		// glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
 		// -------------------------------------------------------------------------------
 		glfwSwapBuffers(window);
-		glfwPollEvents();
+		// glfwPollEvents();
 	}
 
 	// optional: de-allocate all resources once they've outlived their purpose:
@@ -223,6 +306,10 @@ int main()
 	glDeleteVertexArrays(1, &lightVAO);
 	glDeleteBuffers(1, &VBO);
 
+	// Cleanup
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplGlfw_Shutdown();
+	ImGui::DestroyContext();
 
 	// glfw: terminate, clearing all previously allocated GLFW resources.
 	// ------------------------------------------------------------------
@@ -237,7 +324,7 @@ int init(GLFWwindow* &window)
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
+	const char* glsl_version = "#version 330 core";
 #ifdef __APPLE__
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // uncomment this statement to fix compilation on OS X
 #endif
@@ -245,7 +332,7 @@ int init(GLFWwindow* &window)
 														 // glfw window creation
 														 // --------------------
 
-	window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, u8"又是思念的曾经", NULL, NULL);
+	window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, WINDOW_TITLE, NULL, NULL);
 	if (window == NULL)
 	{
 		std::cout << "Failed to create GLFW window" << std::endl;
@@ -255,8 +342,9 @@ int init(GLFWwindow* &window)
 
 	// glfw设置
 	glfwMakeContextCurrent(window);
+	glfwSwapInterval(1); // Enable vsync
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	glfwSetInputMode(window, GLFW_CURSOR, mouse_state);
 	glfwSetCursorPosCallback(window, mouse_callback);
 
 	// glad初始化
@@ -265,6 +353,21 @@ int init(GLFWwindow* &window)
 		std::cout << "Failed to initialize GLAD" << std::endl;
 		return -1;
 	}
+
+	// Setup Dear ImGui context
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO(); (void)io;
+	//io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+	//io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+
+	// Setup Dear ImGui style
+	ImGui::StyleColorsDark();
+	//ImGui::StyleColorsClassic();
+
+	// Setup Platform/Renderer bindings
+	ImGui_ImplGlfw_InitForOpenGL(window, true);
+	ImGui_ImplOpenGL3_Init(glsl_version);
 
 	// gl初始化
 	glEnable(GL_DEPTH_TEST);
@@ -277,34 +380,49 @@ int init(GLFWwindow* &window)
 // ---------------------------------------------------------------------------------------------------------
 void processInput(GLFWwindow *window, Camera &cam)
 {
+	//if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+		//glfwSetWindowShouldClose(window, true);
+	if (mouse_state == GLFW_CURSOR_DISABLED)
+	{
+		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+		{
+			cam.ProcessKeyboard(Camera_Movement::FORWARD, deltaTime);
+		}
+		if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+		{
+			cam.ProcessKeyboard(Camera_Movement::BACKWARD, deltaTime);
+		}
+		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+		{
+			cam.ProcessKeyboard(Camera_Movement::LEFT, deltaTime);
+		}
+		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+		{
+			cam.ProcessKeyboard(Camera_Movement::RIGHT, deltaTime);
+		}
+		if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+		{
+			cam.ProcessKeyboard(Camera_Movement::UP, deltaTime);
+		}
+		if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+		{
+			cam.ProcessKeyboard(Camera_Movement::DOWN, deltaTime);
+		}
+	}
+
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-		glfwSetWindowShouldClose(window, true);
-
-	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
 	{
-		cam.ProcessKeyboard(Camera_Movement::FORWARD, deltaTime);
+		if (mouse_state == GLFW_CURSOR_NORMAL)
+		{
+			mouse_state =  GLFW_CURSOR_DISABLED;
+		}
+		else
+		{
+			mouse_state = GLFW_CURSOR_NORMAL;
+		}
+			
 	}
-	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-	{
-		cam.ProcessKeyboard(Camera_Movement::BACKWARD, deltaTime);
-	}
-	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-	{
-		cam.ProcessKeyboard(Camera_Movement::LEFT, deltaTime);
-	}
-	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-	{
-		cam.ProcessKeyboard(Camera_Movement::RIGHT, deltaTime);
-	}
-	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-	{
-		cam.ProcessKeyboard(Camera_Movement::UP, deltaTime);
-	}
-	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-	{
-		cam.ProcessKeyboard(Camera_Movement::DOWN, deltaTime);
-	}
-
+	glfwSetInputMode(window, GLFW_CURSOR, mouse_state);
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
@@ -330,7 +448,10 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 	lastX = xpos;
 	lastY = ypos;
 
-	cam.ProcessMouseMovement(xoffset, yoffset);
+	if (mouse_state == GLFW_CURSOR_DISABLED)
+	{
+		cam.ProcessMouseMovement(xoffset, yoffset);
+	}
 }
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)

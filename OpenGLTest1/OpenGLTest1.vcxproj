@@ -71,11 +71,14 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>D:\DevLib\OpenGL\glm;D:\DevLib\OpenGL\glad\include;D:\DevLib\OpenGL\glfw3.3.2x86\include;$(IncludePath)</IncludePath>
-    <LibraryPath>D:\DevLib\OpenGL\glfw3.3.2x86\lib-vc2015;$(LibraryPath)</LibraryPath>
+    <IncludePath>D:\DevLib\OpenGL\glm;D:\DevLib\OpenGL\glad\include;D:\DevLib\OpenGL\glfw\include;E:\Workplace\GitRepo\OpengGLLearn\OpenGLTest1\include;$(IncludePath)</IncludePath>
+    <LibraryPath>D:\DevLib\OpenGL\glfw\lib-vc2015;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
+    <ExecutablePath>$(ExecutablePath)</ExecutablePath>
+    <LibraryPath>D:\DevLib\OpenGL\glfw\lib-vc2015;$(LibraryPath)</LibraryPath>
+    <IncludePath>D:\DevLib\OpenGL\glad\include;D:\DevLib\OpenGL\glfw\include;E:\Workplace\GitRepo\OpengGLLearn\OpenGLTest1\include;D:\DevLib\OpenGL\glm;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -98,7 +101,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -106,6 +109,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>opengl32.lib;glfw3.lib;assimp-vc140-mt.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -146,15 +150,31 @@
   <ItemGroup>
     <ClCompile Include="BaseClass\stb_image.cpp" />
     <ClCompile Include="glad.c" />
+    <ClCompile Include="imgui\imgui.cpp" />
+    <ClCompile Include="imgui\imgui_demo.cpp" />
+    <ClCompile Include="imgui\imgui_draw.cpp" />
+    <ClCompile Include="imgui\imgui_impl_glfw.cpp" />
+    <ClCompile Include="imgui\imgui_impl_opengl3.cpp" />
+    <ClCompile Include="imgui\imgui_widgets.cpp" />
     <ClCompile Include="OpenGLTest1.cpp" />
     <ClCompile Include="BaseClass\Shader.cpp" />
     <ClCompile Include="BaseClass\Texture.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BaseClass\Camera.h" />
+    <ClInclude Include="BaseClass\Mesh.h" />
+    <ClInclude Include="BaseClass\Model.h" />
     <ClInclude Include="BaseClass\Shader.h" />
     <ClInclude Include="BaseClass\stb_image.h" />
     <ClInclude Include="BaseClass\Texture.h" />
+    <ClInclude Include="imgui\imconfig.h" />
+    <ClInclude Include="imgui\imgui.h" />
+    <ClInclude Include="imgui\imgui_impl_glfw.h" />
+    <ClInclude Include="imgui\imgui_impl_opengl3.h" />
+    <ClInclude Include="imgui\imgui_internal.h" />
+    <ClInclude Include="imgui\imstb_rectpack.h" />
+    <ClInclude Include="imgui\imstb_textedit.h" />
+    <ClInclude Include="imgui\imstb_truetype.h" />
     <ClInclude Include="include\assimp\config.h" />
   </ItemGroup>
   <ItemGroup>

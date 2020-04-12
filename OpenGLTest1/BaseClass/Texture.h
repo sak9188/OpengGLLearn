@@ -8,7 +8,7 @@
 
 #include "stb_image.h"
 
-class Texture
+class cTexture
 {
 public:
 	// 程序ID
@@ -17,7 +17,7 @@ public:
 	int width, height, channels;
 
 	// 构造器读取并构建着色器
-	Texture(const GLchar* imagePath);
+	cTexture(const GLchar* imagePath);
 	// 使用/激活程序
 	void use();
 	// uniform工具函数
